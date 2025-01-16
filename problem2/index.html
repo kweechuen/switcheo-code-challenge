@@ -1,24 +1,23 @@
 <html>
 
 <head>
-  <title>Fancy Form</title>
-
-  <!-- You may add more stuff here -->
-  <link href="style.css" rel="stylesheet" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Currency Swap Form</title>
+  <link href="style.css" rel="stylesheet">
 </head>
 
 <body>
+ <h1>Currency Swap Form</h1>
 
-  <!-- You may reorganise the whole HTML, as long as your form achieves the same effect. -->
-  <form onsubmit="return !1">
-    <h5>Swap</h5>
+  <form id="swap-form">
     <label for="input-amount">Amount to send</label>
-    <input id="input-amount" />
+    <input type="number" id="input-amount" placeholder="Enter amount" required>
 
     <label for="output-amount">Amount to receive</label>
-    <input id="output-amount" />
+    <input type="text" id="output-amount" placeholder="Calculated amount" disabled>
 
-    <button>CONFIRM SWAP</button>
+    <button type="submit" id="confirm-swap">CONFIRM SWAP</button>
   </form>
   <script src="script.js"></script>
 </body>
