@@ -1,3 +1,29 @@
+List out the computational inefficiencies and anti-patterns found in the code block below.
+
+1. This code block uses
+    1. ReactJS with TypeScript.
+    2. Functional components.
+    3. React Hooks
+2. Implement the Datasource class so that it can retrieve the prices required.
+3. You should explicitly state the issues and explain how to improve them.
+4. You should also provide a refactored version of the code.
+
+
+computational inefficiencies and anti-patterns:
+
+1. Redundant formattedBalances step
+Issue: Created an unnecessary intermediate array for formatting balances.
+Fix: Applied formatting (balance.amount.toFixed()) directly in the rows creation step.
+2. Inefficient switch statement
+Issue: Used a verbose and slower switch statement for mapping blockchain priorities.
+Fix: Replaced with a constant-time lookup table.
+3.Lack of Proper Error Handling
+Issue: Logged errors to the console without informing the user.
+Fix: Added an error state to display user-friendly fallback UI for API failures.
+
+
+	NEW CODE :
+
 interface WalletBalance {
   currency: string;
   amount: number;
@@ -9,7 +35,10 @@ interface FormattedWalletBalance {
 }
 
 class Datasource {
-  // TODO: Implement datasource class
+  private url: string;
+
+  constructor(url: string) {
+    this.url = url;
 }
 
 interface Props extends BoxProps {
@@ -18,33 +47,33 @@ interface Props extends BoxProps {
 const WalletPage: React.FC<Props> = (props: Props) => {
   const { children, ...rest } = props;
   const balances = useWalletBalances();
-	const [prices, setPrices] = useState({});
+  const [prices, setPrices] = useState({});
+  const [error, setError] = useState<string | null>(null);                  // To create a state variable called error. This is necessary so that we can track if an occurred during the execution of the code as well as showing an error message to the user in the UI if something goes wrong.
 
-  useEffect(() => {
-    const datasource = new Datasource("https://interview.switcheo.com/prices.json");
-    datasource.getPrices().then(prices => {
-      setPrices(prices);
-    }).catch(error => {
-      console.err(error);
+useEffect(() => {
+  const datasource = new Datasource("https://interview.switcheo.com/prices.json");
+  datasource
+    .getPrices()
+    .then(setPrices)                                                        // Updates the prices if the fetch is successful.
+    .catch((err) => {
+      console.error(err);                                                   // Logs the error to the console for debugging.
+      setError("Failed to fetch prices. Please try again later.");          // Updates the error state with a message.
     });
-  }, []);
+}, []);
 
-	const getPriority = (blockchain: any): number => {
-	  switch (blockchain) {
-	    case 'Osmosis':
-	      return 100
-	    case 'Ethereum':
-	      return 50
-	    case 'Arbitrum':
-	      return 30
-	    case 'Zilliqa':
-	      return 20
-	    case 'Neo':
-	      return 20
-	    default:
-	      return -99
-	  }
-	}
+
+const blockchainPriority: Record<string, number> = {
+  Osmosis: 100,
+  Ethereum: 50,
+  Arbitrum: 30,
+  Zilliqa: 20,
+  Neo: 20,
+};                                                                         // Simplifying the code for getPriority as an onject lookup is simpler and easier to maintain as compared to a swtich statement.
+
+const getPriority = (blockchain: string): number => {
+  return blockchainPriority[blockchain] ?? -99; 
+};
+
 
   const sortedBalances = useMemo(() => {
     return balances.filter((balance: WalletBalance) => {
@@ -66,14 +95,9 @@ const WalletPage: React.FC<Props> = (props: Props) => {
     });
   }, [balances, prices]);
 
-  const formattedBalances = sortedBalances.map((balance: WalletBalance) => {
-    return {
-      ...balance,
-      formatted: balance.amount.toFixed()
-    }
-  })
+                                                                      // Whole part here is removed as the original code is doing the same thing as the code below, so it will be redundant.
 
-  const rows = sortedBalances.map((balance: FormattedWalletBalance, index: number) => {
+  const rows = sortedBalances.map((balance: WalletBalance, index: number) => {
     const usdValue = prices[balance.currency] * balance.amount;
     return (
       <WalletRow 
@@ -81,14 +105,18 @@ const WalletPage: React.FC<Props> = (props: Props) => {
         key={index}
         amount={balance.amount}
         usdValue={usdValue}
-        formattedAmount={balance.formatted}
+        formattedAmount={balance.amount.toFixed()}                    // formattedBalances step is removed by directly formatting the amount when creating the rows.
       />
-    )
-  })
+    );
+  });
+
+  if (error) {
+    return <div>Error: {error}</div>;                                 // Fallback UI for errors
+}
 
   return (
     <div {...rest}>
       {rows}
     </div>
   )
-}
+};
